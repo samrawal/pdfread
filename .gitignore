@@ -1,0 +1,5 @@
+uploads/
+venv/
+Dockerfile
+fly.toml
+AGENTS.md
