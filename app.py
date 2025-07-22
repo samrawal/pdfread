@@ -1,12 +1,15 @@
 import os
 import base64
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 from werkzeug.utils import secure_filename
 import google.generativeai as genai
 from datetime import datetime
 import uuid
 import PyPDF2
 import io
+import requests
+import re
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -96,6 +99,45 @@ Please provide a helpful response based on the PDF content and conversation hist
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def parse_arxiv_url(url):
+    """Parse arXiv URL and return paper ID"""
+    # Remove any trailing whitespace
+    url = url.strip()
+    
+    # Handle different arXiv URL formats
+    patterns = [
+        r'arxiv\.org/abs/([0-9]{4}\.[0-9]{4,5}(?:v[0-9]+)?)',
+        r'arxiv\.org/pdf/([0-9]{4}\.[0-9]{4,5}(?:v[0-9]+)?)(?:\.pdf)?',
+        r'([0-9]{4}\.[0-9]{4,5}(?:v[0-9]+)?)'  # Just the paper ID
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    
+    return None
+
+def download_arxiv_pdf(paper_id):
+    """Download PDF from arXiv given paper ID"""
+    try:
+        # Construct PDF URL
+        pdf_url = f"https://arxiv.org/pdf/{paper_id}.pdf"
+        
+        # Download PDF
+        response = requests.get(pdf_url, timeout=30)
+        response.raise_for_status()
+        
+        # Verify it's a PDF
+        if not response.content.startswith(b'%PDF'):
+            raise ValueError("Downloaded file is not a valid PDF")
+        
+        return response.content
+    except requests.RequestException as e:
+        raise Exception(f"Failed to download PDF: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Error processing arXiv PDF: {str(e)}")
 
 @app.route('/')
 def index():
@@ -248,6 +290,51 @@ def save_highlights():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/upload_arxiv', methods=['POST'])
+def upload_arxiv():
+    """Handle arXiv URL upload"""
+    try:
+        data = request.json
+        arxiv_url = data.get('url', '').strip()
+        
+        if not arxiv_url:
+            return jsonify({'error': 'No arXiv URL provided'}), 400
+        
+        # Parse arXiv URL
+        paper_id = parse_arxiv_url(arxiv_url)
+        if not paper_id:
+            return jsonify({'error': 'Invalid arXiv URL format'}), 400
+        
+        # Download PDF
+        pdf_content = download_arxiv_pdf(paper_id)
+        
+        # Create filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+        filename = f"{timestamp}arxiv_{paper_id}.pdf"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Save PDF
+        with open(filepath, 'wb') as f:
+            f.write(pdf_content)
+        
+        # Clear chat history when new PDF is uploaded
+        clear_chat_history()
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'filepath': filepath,
+            'paper_id': paper_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """Serve uploaded files"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(debug=True) 

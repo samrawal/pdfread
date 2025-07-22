@@ -238,6 +238,17 @@
             flex: 1;
             padding: var(--space-6);
             overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        /* Upload options container */
+        .upload-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            flex: 1;
         }
 
         /* Pane A - PDF Viewer (40%) */
@@ -249,13 +260,13 @@
         .pdf-drop-zone {
             border: 2px dashed var(--primary-300);
             border-radius: var(--radius-lg);
-            padding: var(--space-12);
+            padding: var(--space-6);
             text-align: center;
             color: var(--primary-500);
             background: var(--primary-50);
             transition: all 0.25s ease;
             cursor: pointer;
-            height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -302,6 +313,87 @@
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        /* ArXiv section styling */
+        .arxiv-section {
+            flex: 1;
+            padding: var(--space-6);
+            background: var(--white);
+            border: 1px solid var(--primary-200);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arxiv-section h3 {
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            margin-bottom: var(--space-4);
+            color: var(--primary-700);
+        }
+
+        .arxiv-input-container {
+            display: flex;
+            gap: var(--space-2);
+            max-width: 400px;
+            margin-bottom: var(--space-3);
+        }
+
+        .arxiv-input {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--primary-300);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            outline: none;
+            background: var(--primary-50);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+
+        .arxiv-input:focus {
+            border-color: var(--accent-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: var(--white);
+        }
+
+        .arxiv-btn {
+            padding: var(--space-3) var(--space-4);
+            background: var(--accent-500);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .arxiv-btn:hover {
+            background: var(--accent-600);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .arxiv-btn:active {
+            transform: translateY(0);
+        }
+
+        .arxiv-btn:disabled {
+            background: var(--primary-300);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .arxiv-help-text {
+            font-size: var(--font-size-xs);
+            color: var(--primary-500);
+            margin: 0;
         }
 
         /* Pane B - Notes (40%) */
@@ -546,6 +638,39 @@
         }
 
         /* PDF.js viewer styles */
+        #pdf-pages-container {
+            max-height: 100%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-400) var(--primary-100);
+        }
+        
+        #pdf-pages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #pdf-pages-container::-webkit-scrollbar-track {
+            background: var(--primary-100);
+            border-radius: 4px;
+        }
+        
+        #pdf-pages-container::-webkit-scrollbar-thumb {
+            background: var(--primary-400);
+            border-radius: 4px;
+        }
+        
+        #pdf-pages-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-500);
+        }
+        
+        .pdf-page-canvas {
+            display: block;
+            margin: 10px auto;
+            border: 1px solid var(--primary-200);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        
         #pdf-canvas {
             max-width: 100%;
             height: auto;
@@ -554,7 +679,7 @@
         }
 
         .pdf-controls {
-            padding: var(--space-3) var(--space-4);
+            padding: var(--space-2) var(--space-4);
             background: var(--primary-50);
             border-bottom: 1px solid var(--primary-200);
             display: flex;
@@ -562,6 +687,11 @@
             align-items: center;
             font-size: var(--font-size-sm);
             border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
         }
 
         .pdf-controls button {
@@ -694,27 +824,47 @@
                 <div class="pane-header-title">PDF Viewer</div>
             </div>
             <div class="pane-content">
-                <div id="pdf-drop-zone" class="pdf-drop-zone">
-                    <div>
-                        <h3>Drop PDF file here</h3>
-                        <p>or click to browse</p>
-                        <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+                <!-- Upload Options Container -->
+                <div id="upload-options" class="upload-options">
+                    <!-- File Upload Section -->
+                    <div id="pdf-drop-zone" class="pdf-drop-zone">
+                        <div>
+                            <h3>Drop PDF file here</h3>
+                            <p>or click to browse</p>
+                            <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <!-- ArXiv URL Section -->
+                    <div class="arxiv-section">
+                        <h3>Or load from arXiv</h3>
+                        <div class="arxiv-input-container">
+                            <input 
+                                type="text" 
+                                id="arxiv-url-input" 
+                                placeholder="Enter arXiv URL (e.g., arxiv.org/abs/2301.00001)"
+                                class="arxiv-input"
+                            >
+                            <button id="arxiv-load-btn" class="arxiv-btn">
+                                Load PDF
+                            </button>
+                        </div>
+                        <p class="arxiv-help-text">
+                            Supports: arxiv.org/abs/ID, arxiv.org/pdf/ID, or just the paper ID
+                        </p>
                     </div>
                 </div>
                 
                 <div id="pdf-viewer-container" class="hidden">
                     <div class="pdf-controls">
-                        <button id="prev-page">Previous</button>
-                        <span id="page-info">Page 1 of 1</span>
-                        <button id="next-page">Next</button>
                         <span style="margin-left: auto;">
                             <button id="zoom-out">-</button>
                             <span id="zoom-level">100%</span>
                             <button id="zoom-in">+</button>
                         </span>
                     </div>
-                    <div style="overflow: auto; flex: 1;">
-                        <canvas id="pdf-canvas"></canvas>
+                    <div id="pdf-pages-container" style="overflow: auto; flex: 1; padding: 10px;">
+                        <!-- Pages will be dynamically added here -->
                     </div>
                 </div>
             </div>
@@ -793,12 +943,10 @@
     <script>
         // Global variables
         let currentPdf = null;
-        let currentPage = 1;
         let totalPages = 0;
         let currentScale = 1.0;
         let currentPdfId = null;
         let currentPdfFilename = null;
-        let renderTask = null;
         let notesEditor = null;
 
         // PDF.js worker
@@ -807,6 +955,7 @@
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             initializePdfDropZone();
+            initializeArxivLoader();
             initializeMarkdownEditor();
             initializeNotesAutoSave();
             initializeChat();
@@ -831,9 +980,7 @@
             dropZone.addEventListener('dragleave', handleDragLeave);
             dropZone.addEventListener('drop', handleFileDrop);
 
-            // PDF controls
-            document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
-            document.getElementById('next-page').addEventListener('click', () => changePage(1));
+            // PDF controls - removed pagination, kept zoom
             document.getElementById('zoom-in').addEventListener('click', () => changeZoom(0.1));
             document.getElementById('zoom-out').addEventListener('click', () => changeZoom(-0.1));
         }
@@ -896,8 +1043,8 @@
                 totalPages = pdf.numPages;
                 currentPage = 1;
                 
-                // Hide drop zone, show viewer
-                document.getElementById('pdf-drop-zone').classList.add('hidden');
+                // Hide upload options, show viewer
+                document.getElementById('upload-options').classList.add('hidden');
                 document.getElementById('pdf-viewer-container').classList.remove('hidden');
                 
                 // Load notes for this PDF
@@ -906,8 +1053,8 @@
                 // Enable chat
                 enableChat();
                 
-                // Render first page
-                renderPage(currentPage);
+                // Render all pages continuously
+                renderAllPages();
                 
                 showStatus('PDF loaded successfully!', 'success');
                 
@@ -922,48 +1069,54 @@
             }
         }
 
-        async function renderPage(pageNum) {
+        async function renderAllPages() {
             if (!currentPdf) return;
             
             try {
-                // Cancel any ongoing render task
-                if (renderTask) {
-                    renderTask.cancel();
+                const pagesContainer = document.getElementById('pdf-pages-container');
+                // Clear existing pages
+                pagesContainer.innerHTML = '';
+                
+                // First, create all canvas elements in order and add them to DOM
+                const canvases = [];
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `pdf-page-${pageNum}`;
+                    canvas.className = 'pdf-page-canvas';
+                    
+                    // Add canvas to container immediately to preserve order
+                    pagesContainer.appendChild(canvas);
+                    canvases.push(canvas);
                 }
                 
-                const page = await currentPdf.getPage(pageNum);
-                const canvas = document.getElementById('pdf-canvas');
-                const context = canvas.getContext('2d');
+                // Now render each page to its corresponding canvas
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    try {
+                        const page = await currentPdf.getPage(pageNum);
+                        const canvas = canvases[pageNum - 1]; // Get the canvas we created for this page
+                        const context = canvas.getContext('2d');
+                        
+                        const viewport = page.getViewport({ scale: currentScale });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        
+                        // Render the page
+                        await page.render(renderContext).promise;
+                    } catch (pageError) {
+                        console.error(`Error rendering page ${pageNum}:`, pageError);
+                    }
+                }
                 
-                const viewport = page.getViewport({ scale: currentScale });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
-                
-                renderTask = page.render(renderContext);
-                await renderTask.promise;
-                renderTask = null;
-                
-                // Update page info
-                document.getElementById('page-info').textContent = `Page ${pageNum} of ${totalPages}`;
+                // Update zoom level display
                 document.getElementById('zoom-level').textContent = Math.round(currentScale * 100) + '%';
                 
             } catch (error) {
-                if (error.name !== 'RenderingCancelledException') {
-                    console.error('Error rendering page:', error);
-                }
-            }
-        }
-
-        function changePage(delta) {
-            const newPage = currentPage + delta;
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
-                renderPage(currentPage);
+                console.error('Error rendering pages:', error);
             }
         }
 
@@ -971,7 +1124,7 @@
             const newScale = Math.max(0.5, Math.min(3.0, currentScale + delta));
             if (newScale !== currentScale) {
                 currentScale = newScale;
-                renderPage(currentPage);
+                renderAllPages(); // Re-render all pages with new scale
             }
         }
 
@@ -1387,6 +1540,106 @@
             document.addEventListener('selectstart', (e) => {
                 if (isResizing) e.preventDefault();
             });
+        }
+
+        // ArXiv loader functionality
+        function initializeArxivLoader() {
+            const arxivInput = document.getElementById('arxiv-url-input');
+            const arxivBtn = document.getElementById('arxiv-load-btn');
+            
+            arxivBtn.addEventListener('click', loadArxivPdf);
+            
+            arxivInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadArxivPdf();
+                }
+            });
+        }
+
+        async function loadArxivPdf() {
+            const arxivInput = document.getElementById('arxiv-url-input');
+            const arxivBtn = document.getElementById('arxiv-load-btn');
+            const url = arxivInput.value.trim();
+            
+            if (!url) {
+                showStatus('Please enter an arXiv URL', 'error');
+                return;
+            }
+            
+            // Disable input during loading
+            arxivInput.disabled = true;
+            arxivBtn.disabled = true;
+            arxivBtn.textContent = 'Loading...';
+            
+            try {
+                showStatus('Downloading PDF from arXiv...', 'success');
+                
+                const response = await fetch('/upload_arxiv', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load arXiv PDF');
+                }
+                
+                currentPdfFilename = data.filename;
+                const paperId = data.paper_id;
+                
+                // Download the saved PDF file to load in PDF.js
+                const pdfResponse = await fetch(`/uploads/${currentPdfFilename}`);
+                if (!pdfResponse.ok) {
+                    throw new Error('Could not load the downloaded PDF');
+                }
+                const arrayBuffer = await pdfResponse.arrayBuffer();
+                
+                // Load PDF with PDF.js
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                currentPdf = pdf;
+                totalPages = pdf.numPages;
+                currentPage = 1;
+                
+                // Generate PDF ID for localStorage (using paper ID)
+                currentPdfId = generatePdfId(`arxiv_${paperId}`, arrayBuffer.byteLength);
+                
+                // Hide upload options, show viewer
+                document.getElementById('upload-options').classList.add('hidden');
+                document.getElementById('pdf-viewer-container').classList.remove('hidden');
+                
+                // Load notes for this PDF
+                loadNotesForPdf(currentPdfId);
+                
+                // Enable chat
+                enableChat();
+                
+                // Render all pages continuously
+                renderAllPages();
+                
+                showStatus(`arXiv paper ${paperId} loaded successfully!`, 'success');
+                
+                // Clear input
+                arxivInput.value = '';
+                
+                // Auto-send summary request
+                setTimeout(() => {
+                    autoSendSummaryRequest();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error loading arXiv PDF:', error);
+                showStatus('Error loading arXiv PDF: ' + error.message, 'error');
+            } finally {
+                // Re-enable input
+                arxivInput.disabled = false;
+                arxivBtn.disabled = false;
+                arxivBtn.textContent = 'Load PDF';
+            }
         }
     </script>
 </body>
