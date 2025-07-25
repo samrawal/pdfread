@@ -814,12 +814,214 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary-400);
         }
+
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+                padding: var(--space-2);
+                gap: 0;
+                height: 100vh;
+            }
+
+            /* Mobile tab navigation */
+            .mobile-tabs {
+                display: flex;
+                background: var(--white);
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--primary-200);
+                border-bottom: none;
+                overflow: hidden;
+            }
+
+            .mobile-tab {
+                flex: 1;
+                padding: var(--space-3) var(--space-2);
+                text-align: center;
+                background: var(--primary-100);
+                color: var(--primary-600);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: var(--font-size-sm);
+                font-weight: 500;
+                border: none;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: var(--space-1);
+                min-height: 60px;
+            }
+
+            .mobile-tab.active {
+                background: var(--white);
+                color: var(--primary-800);
+                box-shadow: inset 0 -2px 0 var(--accent-500);
+            }
+
+            .mobile-tab:not(.active):hover {
+                background: var(--primary-200);
+                color: var(--primary-700);
+            }
+
+            .mobile-tab-icon {
+                font-size: 18px;
+                line-height: 1;
+            }
+
+            .mobile-tab-label {
+                font-size: var(--font-size-xs);
+                line-height: 1;
+            }
+
+            /* Hide desktop resize handles on mobile */
+            .resize-handle {
+                display: none;
+            }
+
+            /* Mobile pane styling */
+            .pane {
+                width: 100% !important;
+                min-width: unset !important;
+                flex: 1;
+                margin: 0;
+                border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+                border-top: none;
+                display: none; /* Hidden by default, shown when active */
+            }
+
+            .pane.mobile-active {
+                display: flex;
+            }
+
+            /* Adjust pane headers for mobile */
+            .pane-header {
+                padding: var(--space-4) var(--space-4);
+                font-size: var(--font-size-base);
+            }
+
+            .pane-content {
+                padding: var(--space-4);
+            }
+
+            /* Mobile-specific adjustments */
+            .pdf-drop-zone {
+                padding: var(--space-8) var(--space-4);
+            }
+
+            .pdf-drop-zone h3 {
+                font-size: var(--font-size-base);
+            }
+
+            .arxiv-input-container {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .arxiv-input {
+                width: 100%;
+                margin-bottom: var(--space-2);
+            }
+
+            .chat-message {
+                margin-bottom: var(--space-3);
+                margin-left: 0;
+                margin-right: 0;
+                font-size: var(--font-size-sm);
+            }
+
+            .chat-message.user {
+                margin-left: var(--space-3);
+            }
+
+            .chat-message.ai {
+                margin-right: var(--space-3);
+            }
+
+            .chat-input-container {
+                gap: var(--space-2);
+            }
+
+            .chat-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            /* Improve touch targets */
+            .header-btn, .arxiv-btn, .chat-send-btn {
+                min-height: 44px;
+                padding: var(--space-3) var(--space-4);
+            }
+
+            /* Adjust footer for mobile */
+            .app-footer {
+                position: relative;
+                margin-top: var(--space-4);
+                transform: none;
+                left: auto;
+                bottom: auto;
+                width: auto;
+                text-align: center;
+            }
+
+            /* PDF controls mobile adjustments */
+            .pdf-controls {
+                padding: var(--space-3);
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: var(--space-2);
+            }
+
+            .pdf-controls button {
+                min-height: 44px;
+                padding: var(--space-2) var(--space-4);
+            }
+
+            /* Notes editor mobile adjustments */
+            .notes-container .EasyMDEContainer .editor-toolbar {
+                padding: var(--space-2);
+                flex-wrap: wrap;
+            }
+
+            .notes-container .EasyMDEContainer .editor-toolbar button {
+                margin: var(--space-1);
+                min-height: 36px;
+                min-width: 36px;
+            }
+        }
+
+        /* Desktop-only styles */
+        @media (min-width: 769px) {
+            .mobile-tabs {
+                display: none;
+            }
+
+            .pane {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app-container" id="app-container">
+        <!-- Mobile Tab Navigation -->
+        <div class="mobile-tabs" id="mobile-tabs">
+            <button class="mobile-tab active" data-pane="pane-a" id="mobile-tab-pdf">
+                <span class="mobile-tab-icon">📄</span>
+                <span class="mobile-tab-label">PDF</span>
+            </button>
+            <button class="mobile-tab" data-pane="pane-b" id="mobile-tab-notes">
+                <span class="mobile-tab-icon">📝</span>
+                <span class="mobile-tab-label">Notes</span>
+            </button>
+            <button class="mobile-tab" data-pane="pane-c" id="mobile-tab-chat">
+                <span class="mobile-tab-icon">🤖</span>
+                <span class="mobile-tab-label">AI Chat</span>
+            </button>
+        </div>
+
         <!-- Pane A: PDF Viewer -->
-        <div class="pane pane-a" id="pane-a">
+        <div class="pane pane-a mobile-active" id="pane-a">
             <div class="pane-header">
                 <div class="pane-header-title">PDF Viewer</div>
             </div>
@@ -962,6 +1164,7 @@
             initializeResizablePanes();
             initializeMarkdown();
             initializeNotesDownload();
+            initializeMobileTabs();
         });
 
         // PDF Drop Zone functionality
@@ -1641,6 +1844,72 @@
                 arxivBtn.textContent = 'Load PDF';
             }
         }
+
+        // Mobile tabs functionality
+        function initializeMobileTabs() {
+            const mobileTabs = document.querySelectorAll('.mobile-tab');
+            const panes = document.querySelectorAll('.pane');
+            
+            mobileTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetPaneId = this.getAttribute('data-pane');
+                    
+                    // Remove active class from all tabs and panes
+                    mobileTabs.forEach(t => t.classList.remove('active'));
+                    panes.forEach(p => p.classList.remove('mobile-active'));
+                    
+                    // Add active class to clicked tab and corresponding pane
+                    this.classList.add('active');
+                    document.getElementById(targetPaneId).classList.add('mobile-active');
+                    
+                    // Handle specific mobile tab actions
+                    handleMobileTabSwitch(targetPaneId);
+                });
+            });
+        }
+
+        function handleMobileTabSwitch(paneId) {
+            // Refresh notes editor when switching to notes tab
+            if (paneId === 'pane-b' && notesEditor) {
+                setTimeout(() => {
+                    notesEditor.codemirror.refresh();
+                }, 100);
+            }
+            
+            // Auto-focus chat input when switching to chat tab
+            if (paneId === 'pane-c') {
+                const chatInput = document.getElementById('chat-input');
+                if (chatInput && !chatInput.disabled) {
+                    setTimeout(() => {
+                        chatInput.focus();
+                    }, 100);
+                }
+            }
+            
+            // Refresh PDF rendering when switching to PDF tab (in case of zoom changes)
+            if (paneId === 'pane-a' && currentPdf) {
+                // Small delay to ensure the pane is visible before refreshing
+                setTimeout(() => {
+                    // Force a slight zoom refresh to ensure proper rendering
+                    const currentZoom = currentScale;
+                    currentScale = currentZoom + 0.001;
+                    renderAllPages();
+                    currentScale = currentZoom;
+                }, 100);
+            }
+        }
+
+        // Add window resize handler to refresh layout on orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                if (notesEditor) {
+                    notesEditor.codemirror.refresh();
+                }
+                if (currentPdf) {
+                    renderAllPages();
+                }
+            }, 300);
+        });
     </script>
 </body>
 </html> 
