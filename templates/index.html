@@ -663,13 +663,18 @@
             background: var(--primary-500);
         }
         
-        .pdf-page-canvas {
-            display: block;
-            margin: 10px auto;
-            border: 1px solid var(--primary-200);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-radius: 4px;
-        }
+                          .pdf-page-canvas {
+             display: block;
+             margin: 10px auto;
+             border: 1px solid var(--primary-200);
+             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+             border-radius: 4px;
+             /* Improve text rendering quality on mobile */
+             image-rendering: auto;
+             image-rendering: smooth;
+             -webkit-font-smoothing: antialiased;
+             -moz-osx-font-smoothing: grayscale;
+         }
         
         #pdf-canvas {
             max-width: 100%;
@@ -977,17 +982,32 @@
                 padding: var(--space-2) var(--space-4);
             }
 
-            /* Notes editor mobile adjustments */
-            .notes-container .EasyMDEContainer .editor-toolbar {
-                padding: var(--space-2);
-                flex-wrap: wrap;
-            }
+                         /* Notes editor mobile adjustments */
+             .notes-container .EasyMDEContainer .editor-toolbar {
+                 padding: var(--space-2);
+                 flex-wrap: wrap;
+             }
 
-            .notes-container .EasyMDEContainer .editor-toolbar button {
-                margin: var(--space-1);
-                min-height: 36px;
-                min-width: 36px;
-            }
+             .notes-container .EasyMDEContainer .editor-toolbar button {
+                 margin: var(--space-1);
+                 min-height: 36px;
+                 min-width: 36px;
+             }
+
+             /* Mobile PDF rendering optimizations */
+             .pdf-page-canvas {
+                 /* Ensure crisp rendering on high-DPI mobile displays */
+                 backface-visibility: hidden;
+                 -webkit-backface-visibility: hidden;
+                 transform: translateZ(0);
+                 -webkit-transform: translateZ(0);
+             }
+
+             #pdf-pages-container {
+                 /* Improve scrolling performance on mobile */
+                 -webkit-overflow-scrolling: touch;
+                 overflow-scrolling: touch;
+             }
         }
 
         /* Desktop-only styles */
@@ -1238,15 +1258,18 @@
                 
                 currentPdfFilename = uploadData.filename;
                 
-                // Load PDF with PDF.js
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                
-                currentPdf = pdf;
-                totalPages = pdf.numPages;
-                currentPage = 1;
-                
-                // Hide upload options, show viewer
+                                 // Load PDF with PDF.js
+                 const arrayBuffer = await file.arrayBuffer();
+                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                 
+                 currentPdf = pdf;
+                 totalPages = pdf.numPages;
+                 currentPage = 1;
+                 
+                 // Set optimal scale for mobile devices
+                 currentScale = getOptimalScale();
+                 
+                 // Hide upload options, show viewer
                 document.getElementById('upload-options').classList.add('hidden');
                 document.getElementById('pdf-viewer-container').classList.remove('hidden');
                 
@@ -1292,28 +1315,40 @@
                     canvases.push(canvas);
                 }
                 
-                // Now render each page to its corresponding canvas
-                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                    try {
-                        const page = await currentPdf.getPage(pageNum);
-                        const canvas = canvases[pageNum - 1]; // Get the canvas we created for this page
-                        const context = canvas.getContext('2d');
-                        
-                        const viewport = page.getViewport({ scale: currentScale });
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-                        
-                        const renderContext = {
-                            canvasContext: context,
-                            viewport: viewport
-                        };
-                        
-                        // Render the page
-                        await page.render(renderContext).promise;
-                    } catch (pageError) {
-                        console.error(`Error rendering page ${pageNum}:`, pageError);
-                    }
-                }
+                                 // Now render each page to its corresponding canvas
+                 for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                     try {
+                         const page = await currentPdf.getPage(pageNum);
+                         const canvas = canvases[pageNum - 1]; // Get the canvas we created for this page
+                         const context = canvas.getContext('2d');
+                         
+                         // Get device pixel ratio for high-DPI displays
+                         const devicePixelRatio = window.devicePixelRatio || 1;
+                         
+                         const viewport = page.getViewport({ scale: currentScale });
+                         
+                         // Set actual canvas size (accounting for device pixel ratio)
+                         canvas.width = viewport.width * devicePixelRatio;
+                         canvas.height = viewport.height * devicePixelRatio;
+                         
+                         // Set display size (CSS pixels)
+                         canvas.style.width = viewport.width + 'px';
+                         canvas.style.height = viewport.height + 'px';
+                         
+                         // Scale the drawing context to match device pixel ratio
+                         context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+                         
+                         const renderContext = {
+                             canvasContext: context,
+                             viewport: viewport
+                         };
+                         
+                         // Render the page
+                         await page.render(renderContext).promise;
+                     } catch (pageError) {
+                         console.error(`Error rendering page ${pageNum}:`, pageError);
+                     }
+                 }
                 
                 // Update zoom level display
                 document.getElementById('zoom-level').textContent = Math.round(currentScale * 100) + '%';
@@ -1801,14 +1836,17 @@
                 }
                 const arrayBuffer = await pdfResponse.arrayBuffer();
                 
-                // Load PDF with PDF.js
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                
-                currentPdf = pdf;
-                totalPages = pdf.numPages;
-                currentPage = 1;
-                
-                // Generate PDF ID for localStorage (using paper ID)
+                                 // Load PDF with PDF.js
+                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                 
+                 currentPdf = pdf;
+                 totalPages = pdf.numPages;
+                 currentPage = 1;
+                 
+                 // Set optimal scale for mobile devices
+                 currentScale = getOptimalScale();
+                 
+                 // Generate PDF ID for localStorage (using paper ID)
                 currentPdfId = generatePdfId(`arxiv_${paperId}`, arrayBuffer.byteLength);
                 
                 // Hide upload options, show viewer
@@ -1899,17 +1937,50 @@
             }
         }
 
-        // Add window resize handler to refresh layout on orientation change
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                if (notesEditor) {
-                    notesEditor.codemirror.refresh();
-                }
-                if (currentPdf) {
-                    renderAllPages();
-                }
-            }, 300);
-        });
+                 // Add window resize handler to refresh layout on orientation change
+         window.addEventListener('orientationchange', function() {
+             setTimeout(() => {
+                 if (notesEditor) {
+                     notesEditor.codemirror.refresh();
+                 }
+                 if (currentPdf) {
+                     renderAllPages();
+                 }
+             }, 300);
+         });
+
+         // Utility function to detect mobile device
+         function isMobileDevice() {
+             return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+         }
+
+         // Adjust initial scale for mobile devices to ensure readability
+         function getOptimalScale() {
+             if (isMobileDevice()) {
+                 const devicePixelRatio = window.devicePixelRatio || 1;
+                 const viewportWidth = window.innerWidth;
+                 
+                 // Adjust scale based on device characteristics
+                 if (viewportWidth < 400) {
+                     return 0.8; // Smaller phones
+                 } else if (viewportWidth < 600) {
+                     return 1.0; // Regular phones
+                 } else {
+                     return 1.2; // Tablets
+                 }
+             }
+             return 1.0; // Desktop default
+         }
+
+         // Handle device pixel ratio changes (rare but can happen)
+         if (window.matchMedia) {
+             const mediaQuery = window.matchMedia('screen and (min-resolution: 2dppx)');
+             mediaQuery.addListener(function(mq) {
+                 if (currentPdf) {
+                     setTimeout(() => renderAllPages(), 100);
+                 }
+             });
+         }
     </script>
 </body>
 </html> 
